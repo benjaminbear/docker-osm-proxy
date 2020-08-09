@@ -1,4 +1,4 @@
-import * as http from 'http';
+import * as http from 'https';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import * as fs from 'fs-extra-promise';
