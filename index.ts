@@ -1,4 +1,6 @@
 import * as http from 'http';
+import * as https from 'https';
+import * as url from 'url';
 import * as path from 'path';
 import * as querystring from 'querystring';
 import * as fs from 'fs-extra-promise';
@@ -8,6 +10,16 @@ const port = parseInt(process.argv[2], 10) ? parseInt(process.argv[2], 10) : 808
 const pathCache = process.argv[3] ? process.argv[3] : path.resolve(__dirname, './cache');
 const layerUrl = process.argv[4] ? process.argv[4] : 'http://{s}.{type}.openstreetmap.org/{z}/{x}/{y}.png';
 const cacheTime = parseInt(process.argv[5], 10) ? parseInt(process.argv[5], 10) : 3600*24*30; // 30 jours
+
+const urlObject = new url.URL(layerUrl);
+
+function httpGet(target, options, res) {
+	if (urlObject.protocol == 'https:') {
+		return https.get(target, options, res);
+	} else {
+		return http.get(target, options, res);
+	}
+} 
 
 console.log('Start proxy open-street-map on:', port);
 
@@ -68,7 +80,7 @@ http.createServer(async (req, res) => {
 					headers: { 'User-Agent': 'OSMProxy' }
 				};
 				
-				http.get(target, options, res => {
+				httpGet(target, options, res => {
 					if (res.statusCode === 200) { 
 						res.setEncoding('binary');
 						res.on('data', chunck => imgData += chunck)
