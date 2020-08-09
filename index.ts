@@ -10,6 +10,7 @@ const port = parseInt(process.argv[2], 10) ? parseInt(process.argv[2], 10) : 808
 const pathCache = process.argv[3] ? process.argv[3] : path.resolve(__dirname, './cache');
 const layerUrl = process.argv[4] ? process.argv[4] : 'http://{s}.{type}.openstreetmap.org/{z}/{x}/{y}.png';
 const cacheTime = parseInt(process.argv[5], 10) ? parseInt(process.argv[5], 10) : 3600*24*30; // 30 jours
+const validOrigins = process.argv[6];
 
 const urlObject = new url.URL(layerUrl);
 
@@ -25,7 +26,6 @@ console.log('Start proxy open-street-map on:', port);
 
 http.createServer(async (req, res) => {
 	try {
-		
 		const match = req.url.match(/^\/([0-9]+)\/([0-9]+)\/([0-9]+).png/i)
 		
 		if (match === null) {
@@ -33,6 +33,26 @@ http.createServer(async (req, res) => {
 			res.statusCode = 404;
 			res.end('Not found');
 			return;
+		}
+
+		const ref = req.headers.referer;
+		let inList = false;
+
+		if (validOrigins != null) {
+			if (ref != null) {
+				const validOriginsList = validOrigins.split(',');
+				const refURL = new url.URL(ref);
+				inList = validOriginsList.includes(refURL.hostname);
+
+				console.log('ref: '+ref);
+			}
+
+			if (ref === null || !inList) {
+				console.log('[GET][403]', req.url);
+				res.statusCode = 403;
+				res.end('Forbidden');
+				return;
+			}
 		}
 		
 		console.log('[GET] ', req.url);
@@ -51,7 +71,7 @@ http.createServer(async (req, res) => {
 		const exist = await fs.existsAsync(file);
 		if (exist) {
 			const stats = await fs.statAsync(file);
-			if (stats.isFile() && (new Date()).getTime() - stats.mtime.getTime() > cacheTime) {
+			if (stats.isFile() && (new Date()).getTime() - stats.mtime.getTime() < cacheTime) {
 				noCache = false;
 			}
 		}
