@@ -26,7 +26,7 @@ console.log('Start proxy open-street-map on:', port);
 
 http.createServer(async (req, res) => {
 	try {
-		const match = req.url.match(/^\/([0-9]+)\/([0-9]+)\/([0-9]+).png/i)
+		const match = req.url.match(/^\/([0-9]+)\/([0-9]+)\/([0-9]+).png/i);
 		
 		if (match === null) {
 			console.log('[GET][404]', req.url);
