@@ -10,7 +10,7 @@ const port = parseInt(process.argv[2], 10) ? parseInt(process.argv[2], 10) : 808
 const pathCache = process.argv[3] ? process.argv[3] : path.resolve(__dirname, './cache');
 const layerUrl = process.argv[4] ? process.argv[4] : 'http://{s}.{type}.openstreetmap.org/{z}/{x}/{y}.png';
 const cacheTime = parseInt(process.argv[5], 10) ? parseInt(process.argv[5], 10) : 3600*24*30; // 30 jours
-const validOrigins = process.argv[6];
+const validOrigins = process.argv[6] != null ? process.argv[6].split(',') : null;
 
 const urlObject = new url.URL(layerUrl);
 
@@ -40,11 +40,8 @@ http.createServer(async (req, res) => {
 
 		if (validOrigins != null) {
 			if (ref != null) {
-				const validOriginsList = validOrigins.split(',');
 				const refURL = new url.URL(ref);
-				inList = validOriginsList.includes(refURL.hostname);
-
-				console.log('ref: '+ref);
+				inList = validOrigins.includes(refURL.hostname);
 			}
 
 			if (ref === null || !inList) {
